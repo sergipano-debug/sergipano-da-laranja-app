@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Principal</title>
+    <style>
+        /* Estilos de fundo e container */
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            text-align: center; 
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            text-align: center; 
+        }
+
+        /* Estilo para os botões do menu */
+        .menu-button {
+            display: block; 
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            background-color: #007bff; 
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center; 
+        }
+
+        .menu-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Estilo específico para o botão Voltar ao Acesso (opcional) */
+        .acesso-button {
+            background-color: #6c757d; /* Cinza para diferenciar */
+            margin-bottom: 25px;
+        }
+        .acesso-button:hover {
+            background-color: #5a6268;
+        }
+
+        hr {
+            width: 100%;
+            border: 0;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+
+        <a href="sergipano.html" class="menu-button acesso-button" style="width: auto; padding: 10px 20px; margin-bottom: 20px;">
+            ⬅️ Voltar ao Acesso
+        </a>
+        
+        <h1>💻 Menu Principal</h1>
+        
+        <hr>
+        
+        <a href="dados_cliente.html" class="menu-button">
+            📋 Dados do Cliente
+        </a>
+        
+        <a href="cobrancas.html" class="menu-button">
+            💵 Cobranças a Fazer
+        </a>
+        
+        <a href="carradas_pagas.html" class="menu-button">
+            ✅ Carradas Pagas
+        </a>
+        
+        <a href="carradas_nao_pagas.html" class="menu-button">
+            ❌ Carradas Não Pagas
+        </a>
+        
+        <a href="banco_da_empresa.html" class="menu-button">
+            💰 Banco da Empresa
+        </a>
+        
+    </div>
+
+</body>
+</html>

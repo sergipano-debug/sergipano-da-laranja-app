@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Carradas Não Pagas</title>
+    <style>
+        /* Estilos de fundo e container (Imagem laranja e quadrado branco) */
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 800px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+    
+        <a href="menu.html">
+            <button style="padding: 10px 20px; margin: 5px;">Voltar ao Menu Principal</button>
+        </a>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 5px; background-color: lightgray;">Recarregar Página</button>
+        
+        <h1>❌ Carradas Não Pagas</h1>
+        
+        <hr>
+        
+        <h2>Registrar Carrada Pendente</h2>
+        <form id="formCarradaPendente">
+            <label for="nomeCliente">Nome do Cliente:</label>
+            <br>
+            <input type="text" id="nomeCliente" name="nomeCliente" required>
+            <br><br>
+            
+            <label for="dataCarrada">Data da Carrada (Hoje):</label>
+            <br>
+            <input type="date" id="dataCarrada" name="dataCarrada" required>
+            <br><br>
+            
+            <label for="dinheiroCarrada">Dinheiro da Carrada (R$):</label>
+            <br>
+            <input type="number" id="dinheiroCarrada" name="dinheiroCarrada" step="0.01" required>
+            <br><br>
+            
+            <button type="submit">Registrar Pendência</button>
+        </form>
+        
+        <hr>
+        
+        <h2>🔎 Lista de Pendências</h2>
+        <input type="text" id="barraPesquisa" placeholder="Pesquisar cliente..." onkeyup="filtrarPendencias()" style="width: 300px; padding: 5px; margin-bottom: 10px;">
+        
+        <div id="listaCarradasNaoPagas">
+            </div>
+        
+        <hr>
+
+        <script>
+            const CHAVE_STORAGE = 'carradasNaoPagas';
+
+            function getDataHojeFormatada() {
+                const now = new Date();
+                const year = now.getFullYear();
+                let month = now.getMonth() + 1;
+                let day = now.getDate();
+                if (month < 10) month = '0' + month;
+                if (day < 10) day = '0' + day;
+                return `${year}-${month}-${day}`;
+            }
+            
+            function carregarPendencias() {
+                const pendenciasString = localStorage.getItem(CHAVE_STORAGE);
+                try {
+                    return pendenciasString ? JSON.parse(pendenciasString) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function salvarPendencias(pendencias) {
+                localStorage.setItem(CHAVE_STORAGE, JSON.stringify(pendencias));
+            }
+
+            function formatarData(dataISO) {
+                const [ano, mes, dia] = dataISO.split('-');
+                if (!dia || !mes || !ano) return dataISO;
+                return `${dia}/${mes}/${ano.substring(2)}`;
+            }
+
+            document.getElementById('formCarradaPendente').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const nome = document.getElementById('nomeCliente').value.trim();
+                const dataISO = document.getElementById('dataCarrada').value;
+                const dinheiro = parseFloat(document.getElementById('dinheiroCarrada').value).toFixed(2);
+                const dataFormatada = formatarData(dataISO);
+                
+                const key = nome.toLowerCase(); 
+                
+                const novaPendencia = {
+                    nome: nome,
+                    data: dataFormatada, 
+                    dinheiro: dinheiro,
+                    key: key 
+                };
+                
+                let pendencias = carregarPendencias();
+                
+                const indiceExistente = pendencias.findIndex(p => p.key === key);
+                
+                if (indiceExistente > -1) {
+                    pendencias[indiceExistente] = novaPendencia;
+                } else {
+                    pendencias.push(novaPendencia);
+                }
+                
+                salvarPendencias(pendencias);
+                
+                document.getElementById('formCarradaPendente').reset();
+                document.getElementById('dataCarrada').value = getDataHojeFormatada(); 
+                exibirPendencias(pendencias);
+            });
+
+            function exibirPendencias(pendenciasParaExibir) {
+                const listaDiv = document.getElementById('listaCarradasNaoPagas');
+                listaDiv.innerHTML = '';
+                
+                if (pendenciasParaExibir.length === 0) {
+                    listaDiv.innerHTML = '<p>Nenhuma carrada não paga registrada.</p>';
+                    return;
+                }
+                
+                const ul = document.createElement('ul');
+                pendenciasParaExibir.forEach(pendencia => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        Cliente: <strong>${pendencia.nome}</strong> / Data: ${pendencia.data} / Devendo: R$ ${pendencia.dinheiro}
+                        <button onclick="removerPendencia('${pendencia.key}')" style="margin-left: 15px; background-color: salmon; color: white;">Remover</button>
+                    `;
+                    ul.appendChild(li);
+                });
+                listaDiv.appendChild(ul);
+            }
+
+            window.removerPendencia = function(key) {
+                let pendencias = carregarPendencias();
+                
+                pendencias = pendencias.filter(p => p.key !== key);
+                
+                salvarPendencias(pendencias);
+                exibirPendencias(pendencias); 
+            }
+
+            window.filtrarPendencias = function() {
+                const termo = document.getElementById('barraPesquisa').value.toLowerCase();
+                const todasPendencias = carregarPendencias();
+                
+                const pendenciasFiltradas = todasPendencias.filter(pendencia => 
+                    pendencia.nome.toLowerCase().includes(termo) ||
+                    pendencia.dinheiro.includes(termo)
+                );
+                
+                exibirPendencias(pendenciasFiltradas);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const todasPendencias = carregarPendencias();
+                exibirPendencias(todasPendencias);
+                document.getElementById('dataCarrada').value = getDataHojeFormatada();
+            });
+
+        </script>
+        
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Banco da Empresa</title>
+    <style>
+        /* Estilos de fundo e container */
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 800px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Estilos específicos da página */
+        .saldo-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .ganho-hoje-container, .reajuste-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+    
+        <a href="menu.html">
+            <button style="padding: 10px 20px; margin: 5px;">Voltar ao Menu Principal</button>
+        </a>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 5px; background-color: lightgray;">Recarregar Página</button>
+        
+        <h1>💰 Banco da Empresa</h1>
+        
+        <hr>
+        
+        <h2>Saldo Total</h2>
+        <div id="saldoTotalDisplay" class="saldo-display">R$ 0,00</div>
+
+        <hr>
+        
+        <h2>Registrar Ganhos (Adicionar)</h2>
+        <form id="formGanhos">
+            <div class="ganho-hoje-container">
+                <label for="dinheiroGanho">Dinheiro Ganhado (Hoje): R$</label>
+                <input type="number" id="dinheiroGanho" name="dinheiroGanho" step="0.01" value="0.00" required>
+                
+                <button type="submit">Confirmar Ganho</button>
+            </div>
+        </form>
+        
+        <hr>
+
+        <h2>Reajustar Saldo (Retirar)</h2>
+        <form id="formReajuste">
+            <div class="reajuste-container">
+                <label for="dinheiroReajuste">Valor a Ser Retirado: R$</label>
+                <input type="number" id="dinheiroReajuste" name="dinheiroReajuste" step="0.01" value="0.00" required>
+                
+                <button type="submit" style="background-color: #dc3545;">Retirar</button>
+            </div>
+        </form>
+
+        <hr>
+
+        <script>
+            const CHAVE_STORAGE = 'bancoEmpresaSaldo';
+
+            function carregarSaldo() {
+                const saldoString = localStorage.getItem(CHAVE_STORAGE);
+                return parseFloat(saldoString) || 0;
+            }
+
+            function salvarSaldo(saldo) {
+                localStorage.setItem(CHAVE_STORAGE, saldo.toFixed(2));
+            }
+            
+            function exibirSaldo() {
+                const saldo = carregarSaldo();
+                const saldoFormatado = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                document.getElementById('saldoTotalDisplay').textContent = saldoFormatado;
+            }
+
+            // --- Função de Adição (Ganhos) ---
+            document.getElementById('formGanhos').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const inputElement = document.getElementById('dinheiroGanho');
+                const ganhoHoje = parseFloat(inputElement.value);
+                
+                if (isNaN(ganhoHoje) || ganhoHoje <= 0) {
+                    inputElement.value = '0.00';
+                    return; 
+                }
+                
+                let saldoAtual = carregarSaldo();
+                saldoAtual += ganhoHoje;
+                
+                salvarSaldo(saldoAtual);
+                exibirSaldo();
+                inputElement.value = '0.00';
+            });
+
+            // --- NOVA FUNÇÃO de Subtração (Reajuste) ---
+            document.getElementById('formReajuste').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const inputElement = document.getElementById('dinheiroReajuste');
+                const valorRetirada = parseFloat(inputElement.value);
+                
+                if (isNaN(valorRetirada) || valorRetirada <= 0) {
+                    inputElement.value = '0.00';
+                    return; 
+                }
+                
+                let saldoAtual = carregarSaldo();
+                
+                if (valorRetirada > saldoAtual) {
+                    alert(`O valor de R$ ${valorRetirada.toFixed(2).replace('.', ',')} é superior ao saldo atual de R$ ${saldoAtual.toFixed(2).replace('.', ',')}. Operação cancelada.`);
+                    inputElement.value = '0.00';
+                    return;
+                }
+
+                // Subtrai o valor
+                saldoAtual -= valorRetirada;
+                
+                salvarSaldo(saldoAtual);
+                exibirSaldo();
+                inputElement.value = '0.00';
+            });
+
+
+            document.addEventListener('DOMContentLoaded', function() {
+                exibirSaldo();
+            });
+
+        </script>
+        
+    </div>
+
+</body>
+</html>

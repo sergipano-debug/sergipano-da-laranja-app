@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Carradas Pagas</title>
+    <style>
+        /* Estilos de fundo e container */
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 800px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .carrada-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        .remove-btn {
+            background-color: salmon;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+    
+        <a href="menu.html">
+            <button style="padding: 10px 20px; margin: 5px;">Voltar ao Menu Principal</button>
+        </a>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 5px; background-color: lightgray;">Recarregar Página</button>
+        
+        <h1>✅ Carradas Pagas</h1>
+        
+        <hr>
+        
+        <h2>Registrar Carrada Paga</h2>
+        <form id="formCarradaPaga">
+            <label for="nomeCliente">Nome do Cliente:</label>
+            <br>
+            <input type="text" id="nomeCliente" name="nomeCliente" required>
+            <br><br>
+            
+            <label for="dataPagamento">Data do Último Pagamento (Hoje):</label>
+            <br>
+            <input type="date" id="dataPagamento" name="dataPagamento" required>
+            <br><br>
+            
+            <button type="submit">Registrar Pagamento</button>
+        </form>
+        
+        <hr>
+        
+        <h2>🔎 Lista de Últimos Pagamentos</h2>
+        <input type="text" id="barraPesquisa" placeholder="Pesquisar cliente..." onkeyup="filtrarPagamentos()" style="width: 300px; padding: 5px; margin-bottom: 10px;">
+        
+        <div id="listaCarradasPagas">
+            
+        </div>
+        
+        <hr>
+
+        <script>
+            const CHAVE_STORAGE = 'carradasPagas';
+
+            function getDataHojeFormatada() {
+                const now = new Date();
+                const year = now.getFullYear();
+                let month = now.getMonth() + 1;
+                let day = now.getDate();
+                if (month < 10) month = '0' + month;
+                if (day < 10) day = '0' + day;
+                return `${year}-${month}-${day}`;
+            }
+            
+            function carregarPagamentos() {
+                const pagamentosString = localStorage.getItem(CHAVE_STORAGE);
+                try {
+                    return pagamentosString ? JSON.parse(pagamentosString) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function salvarPagamentos(pagamentos) {
+                localStorage.setItem(CHAVE_STORAGE, JSON.stringify(pagamentos));
+            }
+
+            function formatarData(dataISO) {
+                const [ano, mes, dia] = dataISO.split('-');
+                if (!dia || !mes || !ano) return dataISO;
+                return `${dia}/${mes}/${ano.substring(2)}`;
+            }
+
+            document.getElementById('formCarradaPaga').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const nome = document.getElementById('nomeCliente').value.trim();
+                const dataISO = document.getElementById('dataPagamento').value;
+                const dataFormatada = formatarData(dataISO);
+                
+                // NOVO: Cada registro tem um ID único
+                const novoPagamento = {
+                    id: Date.now(), 
+                    nome: nome,
+                    data: dataFormatada 
+                };
+                
+                let pagamentos = carregarPagamentos();
+                
+                // Agora, APENAS ADICIONAMOS, não atualizamos mais
+                pagamentos.push(novoPagamento);
+                
+                salvarPagamentos(pagamentos);
+                
+                document.getElementById('formCarradaPaga').reset();
+                document.getElementById('dataPagamento').value = getDataHojeFormatada(); 
+                exibirPagamentos(pagamentos);
+            });
+
+            function exibirPagamentos(pagamentosParaExibir) {
+                const listaDiv = document.getElementById('listaCarradasPagas');
+                listaDiv.innerHTML = '';
+                
+                if (pagamentosParaExibir.length === 0) {
+                    listaDiv.innerHTML = '<p>Nenhuma carrada paga registrada.</p>';
+                    return;
+                }
+                
+                const ul = document.createElement('ul');
+                pagamentosParaExibir.forEach(pagamento => {
+                    const li = document.createElement('li');
+                    li.classList.add('carrada-item');
+                    
+                    li.innerHTML = `
+                        <span>${pagamento.nome} / ${pagamento.data}</span>
+                        <button class="remove-btn" onclick="removerPagamento(${pagamento.id})">Remover</button>
+                    `;
+                    ul.appendChild(li);
+                });
+                listaDiv.appendChild(ul);
+            }
+
+            // FUNÇÃO DE REMOÇÃO BASEADA NO ID
+            window.removerPagamento = function(idDoRegistro) {
+                let pagamentos = carregarPagamentos();
+                
+                // Filtra pelo ID
+                pagamentos = pagamentos.filter(p => p.id !== idDoRegistro);
+                
+                salvarPagamentos(pagamentos);
+                exibirPagamentos(pagamentos); 
+            }
+
+            window.filtrarPagamentos = function() {
+                const termo = document.getElementById('barraPesquisa').value.toLowerCase();
+                const todosPagamentos = carregarPagamentos();
+                
+                const pagamentosFiltrados = todosPagamentos.filter(pagamento => 
+                    pagamento.nome.toLowerCase().includes(termo)
+                );
+                
+                exibirPagamentos(pagamentosFiltrados);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const todosPagamentos = carregarPagamentos();
+                exibirPagamentos(todosPagamentos);
+                document.getElementById('dataPagamento').value = getDataHojeFormatada();
+            });
+
+        </script>
+        
+    </div>
+
+</body>
+</html>

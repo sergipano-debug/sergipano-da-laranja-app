@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cobranças a Fazer</title>
+    <style>
+        /* Estilos de fundo e container (Imagem laranja e quadrado branco) */
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 800px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+        
+        <a href="menu.html">
+            <button style="padding: 10px 20px; margin: 5px;">Voltar ao Menu Principal</button>
+        </a>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 5px; background-color: lightgray;">Recarregar Página</button>
+        
+        <h1>💵 Cobranças a Fazer</h1>
+        
+        <hr>
+        
+        <h2>Registrar Nova Cobrança</h2>
+        <form id="formCobranca">
+            <label for="nomeCliente">Nome do Cliente:</label>
+            <br>
+            <input type="text" id="nomeCliente" name="nomeCliente" required>
+            <br><br>
+            
+            <label for="valorDevido">Dinheiro que está devendo (R$):</label>
+            <br>
+            <input type="number" id="valorDevido" name="valorDevido" step="0.01" required>
+            <br><br>
+            
+            <button type="submit">Adicionar Cobrança</button>
+        </form>
+        
+        <hr>
+        
+        <h2>🔎 Lista de Cobranças</h2>
+        <input type="text" id="barraPesquisa" placeholder="Pesquisar cliente ou valor..." onkeyup="filtrarCobrancas()" style="width: 300px; padding: 5px; margin-bottom: 10px;">
+        
+        <div id="listaCobrancas">
+            </div>
+        
+        <hr>
+
+        <script>
+            const CHAVE_STORAGE = 'cobrancasAFazer';
+
+            function carregarCobrancas() {
+                const cobrancasString = localStorage.getItem(CHAVE_STORAGE);
+                try {
+                    return cobrancasString ? JSON.parse(cobrancasString) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function salvarCobrancas(cobrancas) {
+                localStorage.setItem(CHAVE_STORAGE, JSON.stringify(cobrancas));
+            }
+
+            document.getElementById('formCobranca').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const nome = document.getElementById('nomeCliente').value.trim();
+                const valor = parseFloat(document.getElementById('valorDevido').value).toFixed(2);
+                
+                const novaCobranca = {
+                    id: Date.now(), 
+                    nome: nome,
+                    valor: valor
+                };
+                
+                const cobrancas = carregarCobrancas();
+                cobrancas.push(novaCobranca);
+                
+                salvarCobrancas(cobrancas);
+                
+                document.getElementById('formCobranca').reset();
+                exibirCobrancas(cobrancas);
+            });
+
+            function exibirCobrancas(cobrancasParaExibir) {
+                const listaDiv = document.getElementById('listaCobrancas');
+                listaDiv.innerHTML = '';
+                
+                if (cobrancasParaExibir.length === 0) {
+                    listaDiv.innerHTML = '<p>Nenhuma cobrança pendente.</p>';
+                    return;
+                }
+                
+                const ul = document.createElement('ul');
+                cobrancasParaExibir.forEach(cobranca => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        Nome: <strong>${cobranca.nome}</strong> | Valor Devido: R$ ${cobranca.valor}
+                        <span style="margin-left: 20px;">
+                            Já Pago: 
+                            <button onclick="marcarComoPago(${cobranca.id}, true)" style="background-color: lightgreen; margin-left: 5px;">Sim</button>
+                            <button onclick="marcarComoPago(${cobranca.id}, false)" style="background-color: salmon;">Não</button>
+                        </span>
+                    `;
+                    ul.appendChild(li);
+                });
+                listaDiv.appendChild(ul);
+            }
+
+            window.marcarComoPago = function(id, pago) {
+                if (pago) {
+                    let cobrancas = carregarCobrancas();
+                    cobrancas = cobrancas.filter(c => c.id !== id);
+                    salvarCobrancas(cobrancas);
+                    exibirCobrancas(cobrancas);
+                } else {
+                    const popup = document.createElement('div');
+                    popup.textContent = "Cobrança não feita";
+                    popup.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: #333;
+                        color: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        z-index: 1000;
+                        opacity: 0;
+                        transition: opacity 0.5s;
+                    `;
+                    document.body.appendChild(popup);
+                    
+                    setTimeout(() => {
+                        popup.style.opacity = 1;
+                    }, 10);
+
+                    setTimeout(() => {
+                        popup.style.opacity = 0;
+                        setTimeout(() => {
+                            document.body.removeChild(popup);
+                        }, 500);
+                    }, 3000);
+                }
+            }
+
+            window.filtrarCobrancas = function() {
+                const termo = document.getElementById('barraPesquisa').value.toLowerCase();
+                const todasCobrancas = carregarCobrancas();
+                
+                const cobrancasFiltradas = todasCobrancas.filter(cobranca => 
+                    cobranca.nome.toLowerCase().includes(termo) || 
+                    cobranca.valor.includes(termo)
+                );
+                
+                exibirCobrancas(cobrancasFiltradas);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const todasCobrancas = carregarCobrancas();
+                exibirCobrancas(todasCobrancas);
+            });
+
+        </script>
+        
+    </div>
+
+</body>
+</html>

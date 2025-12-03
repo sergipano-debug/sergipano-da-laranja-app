@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dados do Cliente</title>
+    <style>
+        body {
+            background-image: url('laranja.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-principal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 40px auto; 
+            max-width: 800px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .cliente-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            display: flex; /* Para alinhar o botão ao lado */
+            justify-content: space-between; /* Para empurrar o botão para a direita */
+            align-items: center;
+        }
+        .remove-btn {
+            background-color: salmon;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-principal"> 
+
+        <a href="menu.html">
+            <button style="padding: 10px 20px; margin: 5px;">Voltar ao Menu Principal</button>
+        </a>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 5px; background-color: lightgray;">Recarregar Página</button>
+        
+        <h1>📋 Dados do Cliente</h1>
+        
+        <hr>
+        
+        <h2>Cadastrar Novo Cliente</h2>
+        <form id="formCadastro">
+            <label for="nomeCliente">Nome do Cliente:</label>
+            <br>
+            <input type="text" id="nomeCliente" name="nomeCliente" required>
+            <br><br>
+            
+            <label for="numeroCliente">Número do Cliente:</label>
+            <br>
+            <input type="text" id="numeroCliente" name="numeroCliente" required>
+            <br><br>
+            
+            <button type="submit">Salvar Cliente</button>
+        </form>
+        
+        <hr>
+        
+        <h2>🔎 Clientes Cadastrados</h2>
+        <input type="text" id="barraPesquisa" placeholder="Pesquisar por Nome ou Número..." onkeyup="filtrarClientes()" style="width: 300px; padding: 5px; margin-bottom: 10px;">
+        
+        <div id="listaClientes">
+            
+        </div>
+        
+        <hr>
+
+        <script>
+            const CHAVE_STORAGE = 'dadosClientes';
+
+            function carregarClientes() {
+                const clientesString = localStorage.getItem(CHAVE_STORAGE);
+                try {
+                    const clientes = clientesString ? JSON.parse(clientesString) : [];
+                    return Array.isArray(clientes) ? clientes : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            function salvarClientes(clientes) {
+                localStorage.setItem(CHAVE_STORAGE, JSON.stringify(clientes));
+            }
+
+            document.getElementById('formCadastro').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const nome = document.getElementById('nomeCliente').value.trim();
+                const numero = document.getElementById('numeroCliente').value.trim();
+                
+                // Usamos a hora atual como ID único para cada novo cliente
+                const novoCliente = {
+                    id: Date.now(), 
+                    nome: nome,
+                    numero: numero
+                };
+                
+                const clientes = carregarClientes();
+                clientes.push(novoCliente);
+                
+                salvarClientes(clientes);
+                
+                document.getElementById('formCadastro').reset();
+                exibirClientes(clientes);
+            });
+
+            function exibirClientes(clientesParaExibir) {
+                const listaDiv = document.getElementById('listaClientes');
+                listaDiv.innerHTML = '';
+                
+                if (clientesParaExibir.length === 0) {
+                    listaDiv.innerHTML = '<p>Nenhum cliente cadastrado.</p>';
+                    return;
+                }
+                
+                const ul = document.createElement('ul');
+                clientesParaExibir.forEach(cliente => {
+                    const li = document.createElement('li');
+                    li.classList.add('cliente-item');
+                    
+                    li.innerHTML = `
+                        <span>Nome: <strong>${cliente.nome}</strong> | Número: ${cliente.numero}</span>
+                        <button class="remove-btn" onclick="removerCliente(${cliente.id})">Remover</button>
+                    `;
+                    ul.appendChild(li);
+                });
+                listaDiv.appendChild(ul);
+            }
+
+            // NOVA FUNÇÃO: Remover Cliente
+            window.removerCliente = function(idDoCliente) {
+                let clientes = carregarClientes();
+                
+                // Filtra: mantém todos os clientes cujo ID não corresponde ao ID que queremos remover.
+                clientes = clientes.filter(c => c.id !== idDoCliente);
+                
+                salvarClientes(clientes);
+                exibirClientes(clientes); 
+            }
+
+            window.filtrarClientes = function() {
+                const termo = document.getElementById('barraPesquisa').value.toLowerCase();
+                const todosClientes = carregarClientes();
+                
+                const clientesFiltrados = todosClientes.filter(cliente => 
+                    cliente.nome.toLowerCase().includes(termo) || 
+                    cliente.numero.toLowerCase().includes(termo)
+                );
+                
+                exibirClientes(clientesFiltrados);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const todosClientes = carregarClientes();
+                exibirClientes(todosClientes);
+            });
+
+        </script>
+        
+    </div>
+
+</body>
+</html>
