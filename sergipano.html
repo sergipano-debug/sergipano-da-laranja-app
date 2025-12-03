@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Acesso Sergipano</title>
     <style>
-        /* Estilos de fundo e container */
+        /* Estilos de fundo e container (Caminho da imagem corrigido) */
         body {
-            background-image: url('laranja.jpg'); 
+            background-image: url('/sergipano-da-laranja-app/laranja.jpg'); 
             background-size: cover;
             background-attachment: fixed;
             font-family: Arial, sans-serif;
@@ -58,7 +58,7 @@
         <h1>🔒 Acesso Sergipano</h1>
         
         <form id="formLogin">
-            <label for="inputSenha">digite sua senha:</label>
+            <label for="inputSenha">Digite sua Senha de Acesso:</label>
             <br>
             <input type="password" id="inputSenha" required>
             <br><br>
@@ -69,6 +69,7 @@
     </div>
 
     <script>
+        // SENHA DE ACESSO. MANTENHA O VALOR AQUI.
         const SENHA_CORRETA = 'sergipano1238'; 
 
         document.getElementById('formLogin').addEventListener('submit', function(e) {
@@ -77,8 +78,10 @@
             const senhaDigitada = document.getElementById('inputSenha').value;
             
             if (senhaDigitada === SENHA_CORRETA) {
+                // Redireciona para o menu se a senha estiver correta
                 window.location.href = 'menu.html';
             } else {
+                // Alerta e limpa o campo se a senha estiver incorreta
                 alert('Acesso negado. Senha incorreta.');
                 document.getElementById('inputSenha').value = '';
             }

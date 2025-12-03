@@ -5,7 +5,7 @@
     <title>Dados do Cliente</title>
     <style>
         body {
-            background-image: url('laranja.jpg'); 
+            background-image: url('/sergipano-da-laranja-app/laranja.jpg'); 
             background-size: cover;
             background-attachment: fixed;
             font-family: Arial, sans-serif;
@@ -24,8 +24,8 @@
             margin: 5px 0;
             padding: 5px;
             border-bottom: 1px solid #eee;
-            display: flex; /* Para alinhar o botão ao lado */
-            justify-content: space-between; /* Para empurrar o botão para a direita */
+            display: flex; 
+            justify-content: space-between; 
             align-items: center;
         }
         .remove-btn {
@@ -100,7 +100,6 @@
                 const nome = document.getElementById('nomeCliente').value.trim();
                 const numero = document.getElementById('numeroCliente').value.trim();
                 
-                // Usamos a hora atual como ID único para cada novo cliente
                 const novoCliente = {
                     id: Date.now(), 
                     nome: nome,
@@ -139,11 +138,9 @@
                 listaDiv.appendChild(ul);
             }
 
-            // NOVA FUNÇÃO: Remover Cliente
             window.removerCliente = function(idDoCliente) {
                 let clientes = carregarClientes();
                 
-                // Filtra: mantém todos os clientes cujo ID não corresponde ao ID que queremos remover.
                 clientes = clientes.filter(c => c.id !== idDoCliente);
                 
                 salvarClientes(clientes);
